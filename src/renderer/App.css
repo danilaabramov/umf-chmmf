@@ -1,0 +1,42 @@
+
+.main {
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: calc((100vh - 658px) / 2);
+}
+
+.writeInput {
+  font-size: 20px;
+  padding: 10px;
+  width: calc(100% - 40px);
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  border: darkgray solid .1px;
+}
+
+.hover:hover{
+  background-color: #eee;
+}
+
+.inputName {
+  color: black;
+  margin: 10px;
+
+}
+
+.btn {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 10px;
+  margin: 10px;
+  background-color: #499BD4;
+  border-radius: 20px;
+  color: #fff;
+  width: 20px;
+  text-align: center;
+  height: 20px;
+  cursor: pointer;
+}
