@@ -1,38 +1,95 @@
-import { useEffect, useState, useMemo } from "react";
-import { CartesianGrid, ComposedChart, Line, Tooltip, XAxis, YAxis, Legend } from "recharts";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
 import "./App.css";
 
 export default function Hello() {
-
   const u0 = 0;
-  const l = 20;
-  const T = 100;
+  const [l, setL] = useState(20);
+  const [T, setT] = useState(100);
   const D = 1.02;
   const [alpha, setAlpha] = useState(0.001);
   const [k, setK] = useState(0.37);
   const [c, setC] = useState(1.42);
 
   const [epsClick, setEpsClick] = useState(5);
-
-  const h = useMemo(() => {
-    return alpha / k;
-  }, [alpha, k]);
-
-  const a = useMemo(() => {
-    return Math.sqrt(k / c);
-  }, [c, k]);
-
   const [iS, setIS] = useState(1);
-  const [ix, setIx] = useState(100);
-  const [it, setIt] = useState(100);
+  const [ix, setIx] = useState(200);
+  const [it, setIt] = useState(200);
+  const [state, setState] = useState(1);
 
-  const psi = (x: number) => {
-    return Math.cos(Math.PI * x / l) ** 2;
-  };
+  const h = useMemo(() => alpha / k, [alpha, k]);
 
-  let f = (p: number) => {
-    return Math.tan(p * l / 2) - h / p;
-  };
+  const a = useMemo(() => Math.sqrt(k / c), [c, k]);
+
+  const psi = (x: number) => Math.cos(Math.PI * x / l) ** 2;
+  const psiX = (x: number) => Math.cos(Math.PI * (x + l / 2) / l) ** 2;
+
+  let f = (p: number) => Math.tan(p * l / 2) - h / p;
+
+  const hx = useMemo(() => l / ix, [ix, l]);
+  const ht = useMemo(() => T / it, [it, T]);
+  const gamma = useMemo(() => a ** 2 * ht / hx ** 2, [ht, hx, a]);
+
+  const W = useMemo(() => {
+    let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1).fill(0))));
+    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
+    for (let k = 0; k < it; ++k) {
+      for (let i = 1; i < ix; ++i) w[k + 1][i] = gamma * (w[k][i + 1] - 2 * w[k][i] + w[k][i - 1]) + w[k][i];
+      w[k + 1][0] = (w[k + 1][1] + h * u0 * hx) / (1 + h * hx);
+      w[k + 1][ix] = (w[k + 1][ix - 1] + h * u0 * hx) / (h * hx + 1);
+    }
+    return w;
+  }, [it, ix, h, gamma, hx]);
+
+  const W2 = useMemo(() => {
+    let pq = Array(it + 1).fill(Array(ix));
+    let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
+    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
+    for (let K = 1; K <= it; ++K) {
+      pq[K][0] = {
+        p: 1 / (1 + h * hx),
+        q: h * u0 * hx / (1 + h * hx)
+      };
+      for (let i = 1; i < ix; ++i)
+        pq[K][i] = {
+          p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
+          q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
+        };
+      w[K][ix] = (h * u0 * hx - pq[K][ix - 1].q) / (pq[K][ix - 1].p - h * hx - 1);
+      for (let i = ix - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
+    }
+    return w;
+  }, [it, ix, h, gamma, hx]);
+
+  const W3 = useMemo(() => {
+    let pq = Array(it + 1).fill(Array(ix));
+    let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
+    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
+    for (let K = 1; K <= it; ++K) {
+      pq[K][0] = {
+        p: (hx ** 2 * c - h * hx * ht * k * 2 + ht * 2 * k) / (ht * 2 * k),
+        q: (u0 * hx * ht * 2 * k * h - w[K - 1][1] * hx ** 2 * c) / (ht * 2 * k)
+      };
+      for (let i = 1; i < ix; ++i)
+        pq[K][i] = {
+          p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
+          q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
+        };
+      w[K][ix] = (pq[K][ix - 1].q * ht * 2 * k + u0 + h * ht * 2 * k * hx + c * hx ** 2 * w[K - 1][ix])
+        / (h * ht * 2 * k * hx + c * hx ** 2 + ht * 2 * k - pq[K][ix - 1].p * ht * 2 * k);
+      for (let i = ix - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
+    }
+    return w;
+  }, [it, ix, h, gamma, ht]);
+
 
   const eps = 0.0001;
   const delta = eps / 6;
@@ -56,17 +113,15 @@ export default function Hello() {
   const p = useMemo(() => {
     let pns = [];
     for (let n = 0; n < iS || n < Nmin; ++n) pns.push(pn(Math.PI / l * 2 * n, Math.PI / l * (2 * n + 1)));
-    console.log(pns.length);
     return pns;
-  }, [Nmin, iS, h]);
-
+  }, [Nmin, iS, h, l]);
 
   const hl = l / 1000;
   const I = (n: number) => {
     let answer = 0;
     let P = p[n];
-    for (let i = 0; i < l / 2; i += hl)
-      answer += (psi(i) - u0) * Math.cos(P * i) * hl;
+    for (let x = 0; x < l / 2; x += hl)
+      answer += (psi(x) - u0) * Math.cos(P * x) * hl;
     return answer;
   };
 
@@ -74,11 +129,9 @@ export default function Hello() {
     let Ans = [];
     for (let n = 0; n < iS || n < Nmin; ++n) Ans.push(I(n) / (l / 4 + h / (2 * (p[n] ** 2 + h ** 2))));
     return Ans;
-  }, [p]);
-
+  }, [p, l]);
 
   const Sum = (is: number, x: number = 1, t: number = 1) => {
-    console.log(is);
     let answer = 0;
     for (let n = 0; n < is; ++n) {
       let P = p[n];
@@ -96,46 +149,84 @@ export default function Hello() {
     let n = 0;
     for (let e = 10 ** -2; e >= 10 ** -7; e /= 10) {
       let Nt = 2;
-      for (; e <= F(Nt); ++Nt);
+      for (; e <= F(Nt); ++Nt) ;
       setNmin(--Nt);
-      for (n = 1; Math.abs(Sum(Nt) - Sum(Nt - n)) <= e; ++n);
+      for (n = 1; Math.abs(Sum(Nt) - Sum(Nt - n)) <= e; ++n) ;
       Ns.push({ Ne: Nt - n + 1, Nt });
     }
     if (flag) setIS(n + 1);
-    setFlag(false)
+    setFlag(false);
     return Ns;
-  }, [a, p]);
+  }, [a, p, l]);
 
-  const colors = ["#4589BD", "#F39839", "#5AA94A", "#CF4B3E", "#A080C4"];
+  // const colors = ["#4589BD", "#F39839", "#5AA94A", "#CF4B3E", "#A080C4"];
+  const colors = ["black", "black", "black", "black", "black"];
+  const colors2 = ["blue", "orange", "green", "red", "purple"];
 
-  const arr = useMemo(() => {
-    const t = [5, 10, 20, 50, 100];
+  const arr1 = useMemo(() => {
+    const t = [T / 20, T / 10, T / 5, T / 2, T];
     let arr: any[] = [];
     for (let i = 0; i < 5; ++i) {
       let data: any[] = [];
-      for (let x = -l / 2; x <= 0; x += l / ix)
+      for (let j = 0, x = -l / 2; j <= ix; x += hx, ++j)
         data = [...data, { x: Number((x + l / 2).toFixed(2)), v: Number(Sum(iS, x, t[i])) }];
-      data = [...data, ...data.reverse().map((item, index) => {
-        return { x: Number((l / 2 + index * l / 2 / (data.length - 1)).toFixed(2)), v: item.v };
-      })];
-
-      arr = [...arr, { name: "t = " + t[i], data, color: colors[i] }];
+      // data = [...data, ...data.reverse().map((item, index) => {
+      //   return { x: Number((l / 2 + (index) * l / 2 / (data.length - 1)).toFixed(2)), v: item.v };
+      // })];
+      console.log('arr1', data.length)
+      arr = [...arr, { name: "t = " + t[i].toFixed(2), data, color: colors[i] }];
     }
-
     return arr;
-  }, [ix, p, a]);
+  }, [ix, p, a, l, T]);
+
+  const arr12 = useMemo(() => {
+    const t = [T / 20, T / 10, T / 5, T / 2, T];
+    const tt = [(it * 0.05).toFixed(0), (it * 0.1).toFixed(0), (it * 0.2).toFixed(0), (it * 0.5).toFixed(0), it];
+
+    let arr: any[] = [];
+
+    for (let j = 0; j < 5; ++j) {
+      let data: any[] = [];
+      for (let i = 0, x = 0; i <= ix; ++i, x += hx)
+        data = [...data, {
+          t: Number(x.toFixed(2)),
+          v: state === 0 ? W[tt[j]][i] : state === 1 ? W2[tt[j]][i] : W3[tt[j]][i]
+        }];
+      console.log('arr2', data.length)
+      arr = [...arr, { name: "t* = " + t[j].toFixed(2), data, color: colors2[j] }];
+    }
+    return arr;
+  }, [ix, it, p, a, state, l, T]);
 
   const arr2 = useMemo(() => {
-    const x = [1, 3, 5, 8, 10];
+
+    const y = [0, l * 0.125, l * 0.25, l * 0.375, l * 0.5];
     let arr: any[] = [];
     for (let i = 0; i < 5; ++i) {
       let data: any[] = [];
-      for (let t = 1; t <= T; t += (T - 1) / it)
-        data = [...data, { t: Number(t.toFixed(2)), v: Number(Sum(iS, x[i], t)) }];
-      arr = [...arr, { name: "y = " + x[i], data, color: colors[i] }];
+      for (let t = 1, k = 0; k <= it; ++k, t += (T - 1) / it)
+        data = [...data, { t: Number(t.toFixed(2)), v: Number(Sum(iS, y[i], t)) }];
+      arr = [...arr, { name: "y = " + y[i].toFixed(2), data, color: colors[i] }];
     }
     return arr;
-  }, [it, p, a]);
+  }, [it, p, a, l, T]);
+
+
+  const arr22 = useMemo(() => {
+    const y = [0, l * 0.125, l * 0.25, l * 0.375, l * 0.5];
+    const x = [(ix * 0.5).toFixed(0), (ix * 0.375).toFixed(0), (ix * 0.25).toFixed(0), (ix * 0.125).toFixed(0), 0];
+    let arr: any[] = [];
+    for (let i = 0; i < 5; ++i) {
+      let data: any[] = [];
+      for (let k = 0, t = 1; k <= it; ++k, t += (T - 1) / it)
+        data = [...data, {
+          t: Number(t.toFixed(2)),
+          v: state === 0 ? W[k][x[i]] : state === 1 ? W2[k][x[i]] : W3[k][x[i]]
+        }];
+      arr = [...arr, { name: "y* = " + y[i].toFixed(2), data, color: colors2[i] }];
+    }
+    return arr;
+  }, [ix, it, p, a, state, l, T]);
 
 
   const [width, setWidth] = useState(window.innerWidth);
@@ -163,12 +254,13 @@ export default function Hello() {
                 right: 15
               }}>
               <CartesianGrid stroke="#BFBEBE" />
-              <XAxis dataKey="x" allowDuplicatedCategory={false} interval={4} />
+              <XAxis dataKey="x" allowDuplicatedCategory={false} />
               <YAxis domain={[0, 1]} />
               <Legend />
               <Tooltip />
-              {arr.map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name} strokeWidth={2}
-                                    stroke={i.color} />)}
+              {[...arr1, ...arr12].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
+                                                    strokeWidth={2}
+                                                    stroke={i.color} />)}
             </ComposedChart>
             <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
           </div>
@@ -177,21 +269,45 @@ export default function Hello() {
             <ComposedChart
               width={width / 2}
               height={300}
-              data={arr2}
               margin={{
                 top: 10,
                 right: 15
               }}>
               <CartesianGrid stroke="#BFBEBE" />
-              <XAxis dataKey="t" allowDuplicatedCategory={false} interval={6} />
+              <XAxis dataKey="t" allowDuplicatedCategory={false} />
               <YAxis domain={[0, 1]} />
               <Legend />
               <Tooltip />
-              {arr2.map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name} strokeWidth={2}
-                                     stroke={i.color} />)}
+              {[...arr2, ...arr22].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
+                                                    strokeWidth={2}
+                                                    stroke={i.color} />)}
+
             </ComposedChart>
-            <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>t</h4>
+            <h4
+              style={{
+                position: "absolute",
+                transform: `translate(${width / 2 - 10}px, -25px)`
+              }}
+            >
+              t
+            </h4>
           </div>
+
+          {/* { */}
+          {/*   W.map((Item: number[]) => { */}
+          {/*     return ( */}
+          {/*       <div style={{ display: "flex" }}>{ */}
+          {/*         Item.map((item: number) => { */}
+          {/*           return ( */}
+          {/*             <div style={{ marginRight: 10 }}>{item.toFixed(2)}</div> */}
+          {/*           ); */}
+          {/*         }) */}
+          {/*       }</div> */}
+          {/*     ); */}
+          {/*   }) */}
+          {/* } */}
+
+
         </div>
         <div style={{ marginLeft: 20 }}>
           <div style={{ display: "flex", width: "calc(100% - 20px)" }}>
@@ -247,23 +363,39 @@ export default function Hello() {
               })
             }
           </div>
-          <div className="inputName">Количество интервалов разбиения по x</div>
+          <div className="inputName">T</div>
           <input
             type="number"
             placeholder="100"
             className="writeInput"
-            onChange={e => e.target.value === "" ? setIx(100) : Number(e.target.value) <= 100 ? setIx(Number(e.target.value)) : setIx(100)}
-            min={0}
-            max={100}
+            onChange={e => e.target.value === "" ? setT(100) : Number(e.target.value) > 0 ? setT(Number(e.target.value)) : setT(1)}
+            min={1}
+          />
+          <div className="inputName">l</div>
+          <input
+            type="number"
+            placeholder="20"
+            className="writeInput"
+            onChange={e => e.target.value === "" ? setL(20) : Number(e.target.value) > 0 ? setL(Number(e.target.value)) : setL(1)}
+            min={1}
+          />
+          <div className="inputName">Количество интервалов разбиения по x</div>
+          <input
+            type="number"
+            placeholder="200"
+            className="writeInput"
+            onChange={e => e.target.value === "" ? setIx(200) : Number(e.target.value) <= 1000 && Number(e.target.value) > 0 ? setIx(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIx(1) : setIx(1000)}
+            min={1}
+            max={1000}
           />
           <div className="inputName">Количество интервалов разбиения по t</div>
           <input
             type="number"
-            placeholder="100"
+            placeholder="200"
             className="writeInput"
-            onChange={e => e.target.value === "" ? setIt(100) : Number(e.target.value) <= 100 ? setIt(Number(e.target.value)) : setIt(100)}
-            min={0}
-            max={100}
+            onChange={e => e.target.value === "" ? setIt(200) : Number(e.target.value) <= 10000 && Number(e.target.value) > 0 ? setIt(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIt(1) : setIt(10000)}
+            min={1}
+            max={1000}
           />
           <div className="inputName">α</div>
           <input
@@ -289,6 +421,41 @@ export default function Hello() {
             onChange={e => e.target.value === "" || Number(e.target.value) === 0 ? setC(1.42) : setC(Number(e.target.value))}
             step={0.01}
           />
+
+          <div style={{ display: "flex" }}>
+            <div style={{
+              minWidth: 20,
+              height: 20,
+              margin: 5,
+              background: state === 0 ? "blue" : "gray",
+              borderRadius: 10,
+              cursor: "pointer"
+            }} onClick={() => setState(0)} />
+            <div style={{ marginTop: 5 }}>Простейшая явная конечно-разностная схема</div>
+          </div>
+          <div style={{ display: "flex" }}>
+            <div style={{
+              minWidth: 20,
+              height: 20,
+              margin: 5,
+              background: state === 1 ? "blue" : "gray",
+              borderRadius: 10,
+              cursor: "pointer"
+            }} onClick={() => setState(1)} />
+            <div style={{ marginTop: 5 }}>Простейшая неявная конечно-разностная схема</div>
+          </div>
+          <div style={{ display: "flex" }}>
+            <div style={{
+              minWidth: 20,
+              height: 20,
+              margin: 5,
+              background: state === 2 ? "blue" : "gray",
+              borderRadius: 10,
+              cursor: "pointer"
+            }} onClick={() => setState(2)} />
+            <div style={{ marginTop: 5 }}>Модифицированная простейшая неявная конечно-разностная схема</div>
+          </div>
+
         </div>
       </div>
       <div style={{

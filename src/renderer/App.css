@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: calc((100vh - 658px) / 2);
+  padding-top: 20px;
 }
 
 .writeInput {
