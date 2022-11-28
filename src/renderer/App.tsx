@@ -23,7 +23,7 @@ export default function Hello() {
   const [iS, setIS] = useState(1);
   const [ix, setIx] = useState(200);
   const [it, setIt] = useState(200);
-  const [state, setState] = useState(1);
+  const [state, setState] = useState(2);
 
   const h = useMemo(() => alpha / k, [alpha, k]);
 
@@ -69,7 +69,26 @@ export default function Hello() {
     return w;
   }, [it, ix, h, gamma, hx]);
 
-
+  // const W3 = useMemo(() => {
+  //   let pq = Array(it + 1).fill(Array(ix));
+  //   let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
+  //   for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
+  //   for (let K = 1; K <= it; ++K) {
+  //     pq[K][0] = {
+  //       p: (hx ** 2 * c - h * hx * ht * k * 2 + ht * 2 * k) / (ht * 2 * k),
+  //       q: (u0 * hx * ht * 2 * k * h - w[K - 1][0] * hx ** 2 * c) / (ht * 2 * k)
+  //     };
+  //     for (let i = 1; i < ix; ++i)
+  //       pq[K][i] = {
+  //         p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
+  //         q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
+  //       };
+  //     w[K][ix] = (pq[K][ix - 1].q * ht * 2 * k + u0 + h * ht * 2 * k * hx + c * hx ** 2 * w[K - 1][ix])
+  //       / (h * ht * 2 * k * hx + c * hx ** 2 + ht * 2 * k - pq[K][ix - 1].p * ht * 2 * k);
+  //     for (let i = ix - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
+  //   }
+  //   return w;
+  // }, [it, ix, h, gamma, ht]);
 
   const W3 = useMemo(() => {
     let pq = Array(it + 1).fill(Array(ix));
@@ -77,16 +96,16 @@ export default function Hello() {
     for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
     for (let K = 1; K <= it; ++K) {
       pq[K][0] = {
-        p: (hx ** 2 * c - h * hx * ht * k * 2 + ht * 2 * k) / (ht * 2 * k),
-        q: (u0 * hx * ht * 2 * k * h - w[K - 1][1] * hx ** 2 * c) / (ht * 2 * k)
+        p: 1 / (1 + h * hx + (2 * gamma) ** -1),
+        q: (u0 * hx * h + w[K - 1][0] * (2 * gamma) ** -1) / (1 + h * hx + (2 * gamma) ** -1)
       };
       for (let i = 1; i < ix; ++i)
         pq[K][i] = {
           p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
           q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
         };
-      w[K][ix] = (pq[K][ix - 1].q * ht * 2 * k + u0 + h * ht * 2 * k * hx + c * hx ** 2 * w[K - 1][ix])
-        / (h * ht * 2 * k * hx + c * hx ** 2 + ht * 2 * k - pq[K][ix - 1].p * ht * 2 * k);
+      w[K][ix] = (pq[K][ix - 1].q + u0 + h * hx +(2 * gamma) ** -1 * w[K - 1][ix])
+        / (1 + h * hx ** 2 + (2 * gamma) ** -1 - pq[K][ix - 1].p);
       for (let i = ix - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
     }
     return w;
@@ -385,7 +404,7 @@ export default function Hello() {
             type="number"
             placeholder="200"
             className="writeInput"
-            onChange={e => e.target.value === "" ? setIx(200) : Number(e.target.value) <= 1000 && Number(e.target.value) > 0 ? setIx(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIx(1) : setIx(1000)}
+            onChange={e => e.target.value === "" ? setIx(200) : Number(e.target.value) <= 10000 && Number(e.target.value) > 0 ? setIx(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIx(1) : setIx(10000)}
             min={1}
             max={1000}
           />
