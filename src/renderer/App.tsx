@@ -25,6 +25,8 @@ export default function Hello() {
   const [it, setIt] = useState(200);
   const [state, setState] = useState(2);
 
+  const [tShod, setTShod] = useState(50);
+
   const h = useMemo(() => alpha / k, [alpha, k]);
 
   const a = useMemo(() => Math.sqrt(k / c), [c, k]);
@@ -37,6 +39,10 @@ export default function Hello() {
   const hx = useMemo(() => l / ix, [ix, l]);
   const ht = useMemo(() => T / it, [it, T]);
   const gamma = useMemo(() => a ** 2 * ht / hx ** 2, [ht, hx, a]);
+
+  // const colors = ["#4589BD", "#F39839", "#5AA94A", "#CF4B3E", "#A080C4"];
+  const colors = ["black", "black", "black", "black", "black"];
+  const colors2 = ["blue", "orange", "green", "red", "purple"];
 
   const W = useMemo(() => {
     let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1).fill(0))));
@@ -52,13 +58,13 @@ export default function Hello() {
   const W2 = useMemo(() => {
     let pq = Array(it + 1).fill(Array(ix));
     let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
-    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
+    for (let i = 0; i <= ix + 1; ++i) w[0][i] = psiX(i * hx);
     for (let K = 1; K <= it; ++K) {
       pq[K][0] = {
         p: 1 / (1 + h * hx),
         q: h * u0 * hx / (1 + h * hx)
       };
-      for (let i = 1; i < ix; ++i)
+      for (let i = 1; i < ix + 1; ++i)
         pq[K][i] = {
           p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
           q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
@@ -69,47 +75,146 @@ export default function Hello() {
     return w;
   }, [it, ix, h, gamma, hx]);
 
-  // const W3 = useMemo(() => {
-  //   let pq = Array(it + 1).fill(Array(ix));
-  //   let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
-  //   for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
-  //   for (let K = 1; K <= it; ++K) {
-  //     pq[K][0] = {
-  //       p: (hx ** 2 * c - h * hx * ht * k * 2 + ht * 2 * k) / (ht * 2 * k),
-  //       q: (u0 * hx * ht * 2 * k * h - w[K - 1][0] * hx ** 2 * c) / (ht * 2 * k)
-  //     };
-  //     for (let i = 1; i < ix; ++i)
-  //       pq[K][i] = {
-  //         p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
-  //         q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
-  //       };
-  //     w[K][ix] = (pq[K][ix - 1].q * ht * 2 * k + u0 + h * ht * 2 * k * hx + c * hx ** 2 * w[K - 1][ix])
-  //       / (h * ht * 2 * k * hx + c * hx ** 2 + ht * 2 * k - pq[K][ix - 1].p * ht * 2 * k);
-  //     for (let i = ix - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
-  //   }
-  //   return w;
-  // }, [it, ix, h, gamma, ht]);
 
   const W3 = useMemo(() => {
     let pq = Array(it + 1).fill(Array(ix));
     let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
-    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
+    for (let i = 0; i <= ix + 1; ++i) w[0][i] = psiX(i * hx);
     for (let K = 1; K <= it; ++K) {
       pq[K][0] = {
         p: 1 / (1 + h * hx + (2 * gamma) ** -1),
         q: (u0 * hx * h + w[K - 1][0] * (2 * gamma) ** -1) / (1 + h * hx + (2 * gamma) ** -1)
       };
-      for (let i = 1; i < ix; ++i)
+      for (let i = 1; i < ix + 1; ++i)
         pq[K][i] = {
           p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
           q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
         };
-      w[K][ix] = (pq[K][ix - 1].q + u0 + h * hx +(2 * gamma) ** -1 * w[K - 1][ix])
-        / (1 + h * hx ** 2 + (2 * gamma) ** -1 - pq[K][ix - 1].p);
+      w[K][ix] = (pq[K][ix - 1].q + u0 * h * hx + (2 * gamma) ** -1 * w[K - 1][ix])
+        / (1 + h * hx + (2 * gamma) ** -1 - pq[K][ix - 1].p);
       for (let i = ix - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
     }
     return w;
-  }, [it, ix, h, gamma, ht]);
+  }, [it, ix, h, gamma, hx]);
+
+  const IKs = useMemo(() => {
+    return state === 0 ?
+    [{ I: 5, K: 10 }, { I: 5, K: 20 }, { I: 10, K: 30 }, { I: 10, K: 50 }, { I: 20, K: 100 }] :
+      state === 1 ?
+        [{ I: 5, K: 5 }, { I: 10, K: 10 }, { I: 20, K: 20 }, { I: 40, K: 40 }, { I: 80, K: 80 }] :
+
+        [{ I: 3, K: 1}, {I: 5, K: 3}, { I: 10, K: 5 }, { I: 20, K: 10 }, { I: 40, K: 20 }]
+  }, [state])
+
+
+  const Wshod1 = useMemo(() => {
+    const IK = IKs;
+    let W = [];
+    for (let j = 0; j < IK.length; ++j) {
+      let hx = l / IK[j].I;
+      let ht = T / IK[j].K;
+      let gamma = a ** 2 * ht / hx ** 2;
+      let w = JSON.parse(JSON.stringify(Array(IK[j].K + 1).fill(Array(IK[j].I + 1).fill(0))));
+      for (let i = 0; i <= IK[j].I; ++i) w[0][i] = psiX(i * hx);
+      for (let k = 0; k < IK[j].K; ++k) {
+        for (let i = 1; i < IK[j].I; ++i) w[k + 1][i] = gamma * (w[k][i + 1] - 2 * w[k][i] + w[k][i - 1]) + w[k][i];
+        w[k + 1][0] = (w[k + 1][1] + h * u0 * hx) / (1 + h * hx);
+        w[k + 1][IK[j].I] = (w[k + 1][IK[j].I - 1] + h * u0 * hx) / (h * hx + 1);
+      }
+      W.push(w);
+    }
+    return W;
+  }, [h, gamma, l, T, IKs]);
+
+  const Wshod2 = useMemo(() => {
+    const IK = IKs;
+    let W = [];
+    for (let j = 0; j < IK.length; ++j) {
+      let hx = l / IK[j].I;
+      let ht = T / IK[j].K;
+      let gamma = a ** 2 * ht / hx ** 2;
+      let pq = Array(IK[j].K + 1).fill(Array(IK[j].I));
+      let w = JSON.parse(JSON.stringify(Array(IK[j].K + 1).fill(Array(IK[j].I + 1))));
+      for (let i = 0; i <= IK[j].I + 1; ++i) w[0][i] = psiX(i * hx);
+      for (let K = 1; K <= IK[j].K; ++K) {
+        pq[K][0] = {
+          p: 1 / (1 + h * hx),
+          q: h * u0 * hx / (1 + h * hx)
+        };
+        for (let i = 1; i < IK[j].I + 1; ++i)
+          pq[K][i] = {
+            p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
+            q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
+          };
+        w[K][IK[j].I] = (h * u0 * hx - pq[K][IK[j].I - 1].q) / (pq[K][IK[j].I - 1].p - h * hx - 1);
+        for (let i = IK[j].I - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
+      }
+      W.push(w);
+    }
+    return W;
+  }, [h, gamma, l, T, IKs]);
+
+  const Wshod3 = useMemo(() => {
+    const IK = IKs;
+    let W = [];
+    for (let j = 0; j < IK.length; ++j) {
+      let hx = l / IK[j].I;
+      let ht = T / IK[j].K;
+      let gamma = a ** 2 * ht / hx ** 2;
+      let pq = Array(IK[j].K + 1).fill(Array(IK[j].I));
+      let w = JSON.parse(JSON.stringify(Array(IK[j].K + 1).fill(Array(IK[j].I + 1))));
+      for (let i = 0; i <= IK[j].I + 1; ++i) w[0][i] = psiX(i * hx);
+      for (let K = 1; K <= IK[j].K; ++K) {
+        pq[K][0] = {
+          p: 1 / (1 + h * hx + (2 * gamma) ** -1),
+          q: (u0 * hx * h + w[K - 1][0] * (2 * gamma) ** -1) / (1 + h * hx + (2 * gamma) ** -1)
+        };
+        for (let i = 1; i < IK[j].I + 1; ++i)
+          pq[K][i] = {
+            p: gamma / (1 + 2 * gamma - gamma * pq[K][i - 1].p),
+            q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
+          };
+        w[K][IK[j].I] = (pq[K][IK[j].I - 1].q + u0 * h * hx + (2 * gamma) ** -1 * w[K - 1][IK[j].I])
+          / (1 + h * hx ** 2 + (2 * gamma) ** -1 - pq[K][IK[j].I - 1].p);
+        for (let i = IK[j].I - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
+      }
+      W.push(w);
+    }
+    return W;
+  }, [h, gamma, l, T, IKs]);
+
+  useEffect(() => {
+   if(T < tShod) setTShod(T)
+  }, [T])
+
+  const arrShod = useMemo(() => {
+
+    const IK = IKs;
+
+    let arr: any[] = [];
+
+    const ts = T < tShod ? T : tShod
+
+    for (let j = 0; j < IK.length; ++j) {
+
+      let t = (IK[j].K * ts / T).toFixed(0);
+      let hx = l / IK[j].I;
+      let data: any[] = [];
+      for (let i = 0, x = 0; x <= l && i <= (state === 1 ? Wshod2[j][0].length : state === 2 ? Wshod3[j][0].length : Wshod1[j][0].length); ++i, x += hx)
+        data = [...data, {
+          x: Number(x.toFixed(2)),
+          v: (state === 1 ? Wshod2[j][t][i] : state === 2 ? Wshod3[j][t][i] : Wshod1[j][t][i])//state === 0 ? W[Number((W.length / 2).toFixed(1))][i] : state === 1 ? W2[tt[j]][i] : W2[tt[j]][i]
+        }];
+      arr = [...arr, { name: "I = " + IK[j].I + "; K = " + IK[j].K, data, color: colors2[j] }];
+    }
+    return arr;
+  }, [Wshod2, Wshod3, state, tShod]);
+
+  // const [zoom, setZoom] = useState()
+  //
+  // useEffect(() => {
+  //   setZoom()
+  // }, [zoom])
 
   const eps = 0.0001;
   const delta = eps / 6;
@@ -179,9 +284,17 @@ export default function Hello() {
     return Ns;
   }, [a, p, l]);
 
-  // const colors = ["#4589BD", "#F39839", "#5AA94A", "#CF4B3E", "#A080C4"];
-  const colors = ["black", "black", "black", "black", "black"];
-  const colors2 = ["blue", "orange", "green", "red", "purple"];
+  const arrAnal = useMemo(() => {
+    const t = tShod;
+    let arr: any[] = [];
+
+      let data: any[] = [];
+      for (let j = 0, x = -l / 2; j <= ix; x += hx, ++j)
+        data = [...data, { x: Number((x + l / 2).toFixed(2)), v: Number(Sum(iS, x, t)) }];
+      arr = [...arr, { name: "Аналитика", data, color: 'black' }];
+
+    return arr;
+  }, [ix, p, a, l, T, tShod]);
 
   const arr1 = useMemo(() => {
     const t = [T / 20, T / 10, T / 5, T / 2, T];
@@ -190,17 +303,13 @@ export default function Hello() {
       let data: any[] = [];
       for (let j = 0, x = -l / 2; j <= ix; x += hx, ++j)
         data = [...data, { x: Number((x + l / 2).toFixed(2)), v: Number(Sum(iS, x, t[i])) }];
-      // data = [...data, ...data.reverse().map((item, index) => {
-      //   return { x: Number((l / 2 + (index) * l / 2 / (data.length - 1)).toFixed(2)), v: item.v };
-      // })];
-      console.log('arr1', data.length)
       arr = [...arr, { name: "t = " + t[i].toFixed(2), data, color: colors[i] }];
     }
     return arr;
   }, [ix, p, a, l, T]);
 
   const arr12 = useMemo(() => {
-    const t = [T / 20, T / 10, T / 5, T / 2, T];
+    const t = [T * 0.05, T * 0.1, T * 0.2, T * 0.5, T];
     const tt = [(it * 0.05).toFixed(0), (it * 0.1).toFixed(0), (it * 0.2).toFixed(0), (it * 0.5).toFixed(0), it];
 
     let arr: any[] = [];
@@ -209,14 +318,14 @@ export default function Hello() {
       let data: any[] = [];
       for (let i = 0, x = 0; i <= ix; ++i, x += hx)
         data = [...data, {
-          t: Number(x.toFixed(2)),
+          x: Number(x.toFixed(2)),
           v: state === 0 ? W[tt[j]][i] : state === 1 ? W2[tt[j]][i] : W3[tt[j]][i]
         }];
-      console.log('arr2', data.length)
       arr = [...arr, { name: "t* = " + t[j].toFixed(2), data, color: colors2[j] }];
     }
     return arr;
   }, [ix, it, p, a, state, l, T]);
+
 
   const arr2 = useMemo(() => {
 
@@ -259,6 +368,7 @@ export default function Hello() {
   const [activeP, setActiveP] = useState(false);
   const [activeN, setActiveN] = useState(false);
 
+  // @ts-ignore
   return (
     <>
       <div className="main">
@@ -274,7 +384,7 @@ export default function Hello() {
                 right: 15
               }}>
               <CartesianGrid stroke="#BFBEBE" />
-              <XAxis dataKey="x" allowDuplicatedCategory={false} />
+              <XAxis domain={[0, l]} type="number" dataKey="x" allowDuplicatedCategory={false} />
               <YAxis domain={[0, 1]} />
               <Legend />
               <Tooltip />
@@ -294,39 +404,60 @@ export default function Hello() {
                 right: 15
               }}>
               <CartesianGrid stroke="#BFBEBE" />
-              <XAxis dataKey="t" allowDuplicatedCategory={false} />
+              <XAxis domain={[0, T]} type="number" dataKey="t" allowDuplicatedCategory={false} />
               <YAxis domain={[0, 1]} />
               <Legend />
               <Tooltip />
               {[...arr2, ...arr22].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
                                                     strokeWidth={2}
                                                     stroke={i.color} />)}
-
             </ComposedChart>
             <h4
               style={{
                 position: "absolute",
                 transform: `translate(${width / 2 - 10}px, -25px)`
               }}
-            >
-              t
-            </h4>
+            >t</h4>
           </div>
 
-          {/* { */}
-          {/*   W.map((Item: number[]) => { */}
-          {/*     return ( */}
-          {/*       <div style={{ display: "flex" }}>{ */}
-          {/*         Item.map((item: number) => { */}
-          {/*           return ( */}
-          {/*             <div style={{ marginRight: 10 }}>{item.toFixed(2)}</div> */}
-          {/*           ); */}
-          {/*         }) */}
-          {/*       }</div> */}
-          {/*     ); */}
-          {/*   }) */}
-          {/* } */}
+          <div style={{ width: width / 2, fontSize: "14px" }}>
+            <div style={{ height: 30 }}></div>
 
+
+            <div style={{display: 'flex'}}>
+            <div className="inputName">t</div>
+            <input
+              type="number"
+              placeholder={(T / 2).toFixed(0)}
+              className="writeInput"
+              onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(1) : setTShod(T)}
+              min={1}
+            />
+            </div>
+
+
+            <div style={{ height: 30 }}></div>
+
+            <h4 style={{ position: "absolute", transform: "translate(-40px, -10px)" }}>{`w(x, t=${tShod})`}</h4>
+            <ComposedChart
+              width={width / 2}
+              height={300}
+              margin={{
+                right: 15
+              }}>
+              <CartesianGrid stroke="#BFBEBE" />
+              <XAxis domain={[0, l]} type="number" dataKey="x" allowDuplicatedCategory={false} />
+              <YAxis domain={[0, 1]} />
+              <Legend />
+              <Tooltip />
+              {[...arrShod, ...arrAnal].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
+                                             strokeWidth={2}
+                                             stroke={i.color} />)}
+            </ComposedChart>
+            <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
+          </div>
+
+          <div style={{ height: 50 }}></div>
 
         </div>
         <div style={{ marginLeft: 20 }}>
@@ -555,6 +686,8 @@ export default function Hello() {
               );
             })
           }
+          {W3.map(() => {
+          })}
         </div>
       </div>
     </>
