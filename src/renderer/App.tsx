@@ -28,7 +28,7 @@ export default function Hello(this: any) {
   const [stateShod, setStateShod] = useState(false);
 
   const [tShod, setTShod] = useState(50);
-  const [xShod, setXShod] = useState(5);
+  const [xShod, setXShod] = useState(0);
 
   const h = useMemo(() => alpha / k, [alpha, k]);
 
@@ -231,7 +231,8 @@ export default function Hello(this: any) {
 
     for (let j = 0; j < IK.length; ++j) {
 
-      let x = (IK[j].I * xs / l).toFixed(0);
+      let x = Number((IK[j].I * xs / l - IK[j].I / 2).toFixed(0));
+      if(x < 0) x += IK[j].I
       let ht = (T - 1) / IK[j].K;
       let data: any[] = [];
       for (let k = 0, t = 1; k <= IK[j].K; ++k, t += ht) {
@@ -327,7 +328,11 @@ export default function Hello(this: any) {
   }, [ix, p, a, l, T, tShod]);
 
   const arrAnal2 = useMemo(() => {
-    const x = xShod;
+    let x = xShod;
+    if(x > l / 2) {
+      x -= l
+      x = -x
+    }
     let arr: any[] = [];
 
     let data: any[] = [];
@@ -412,7 +417,7 @@ export default function Hello(this: any) {
   const [activeN, setActiveN] = useState(false);
 
 
-  const [zoom, setZoom] = useState([50]);
+  const [zoom, setZoom] = useState([80]);
   //const [zoom2, setZoom2] = useState([50]);
 
   const [domains, setDomains] = useState([0, l, 0, 1]);
@@ -450,6 +455,7 @@ export default function Hello(this: any) {
     for (let i = 0; i < data.length; ++i)
       if (d1 <= data[i].t && data[i].t <= d2) {
         if (i > 0 && flag1) {
+          if (d1 > 1)
           arr.push({
             t: d1,
             v: (data[i].v - data[i - 1].v) * (d1 - data[i - 1].t) / (data[i].t - data[i - 1].t) + data[i - 1].v
@@ -551,7 +557,7 @@ export default function Hello(this: any) {
                                                         strokeWidth={2}
                                                         stroke={i.color} />)}
                 </ComposedChart>
-                <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
+                <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -60px)` }}>x</h4>
               </div>
               <div style={{ width: width / 2, fontSize: "14px" }}>
                 <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(y, t)</h4>
@@ -574,7 +580,7 @@ export default function Hello(this: any) {
                 <h4
                   style={{
                     position: "absolute",
-                    transform: `translate(${width / 2 - 10}px, -25px)`
+                    transform: `translate(${width / 2 - 10}px, -60px)`
                   }}
                 >t</h4>
               </div>
@@ -586,20 +592,6 @@ export default function Hello(this: any) {
           {
             stateShod &&
             <div style={{ width: width / 2, fontSize: "14px" }}>
-              <div style={{ height: 30 }}></div>
-
-
-              <div style={{ display: "flex" }}>
-                <div className="inputName">t</div>
-                <input
-                  type="number"
-                  placeholder={(T / 2).toFixed(0)}
-                  className="writeInput"
-                  onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(1) : setTShod(T)}
-                  min={1}
-                />
-              </div>
-
               <div style={{ height: 30 }}></div>
 
               <Range
@@ -636,7 +628,20 @@ export default function Hello(this: any) {
 
               <div style={{ height: 30 }}></div>
 
-              <h4 style={{ position: "absolute", transform: "translate(-40px, -10px)" }}>{`w(x, t=${tShod})`}</h4>
+              <div style={{ display: "flex" }}>
+                <div className="inputName">t</div>
+                <input
+                  type="number"
+                  placeholder={(T / 2).toFixed(0)}
+                  className="writeInput"
+                  onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(0) : setTShod(T)}
+                  min={1}
+                />
+              </div>
+
+              <div style={{ height: 30 }}></div>
+
+              <h4 style={{ position: "absolute", transform: "translate(0px, -35px)" }}>{`w(x, t=${tShod})`}</h4>
 
               <ComposedChart
                 width={width / 2}
@@ -658,10 +663,25 @@ export default function Hello(this: any) {
               </ComposedChart>
 
 
-              <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
+              <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -60px)` }}>x</h4>
 
+              <div style={{ height: 30 }}></div>
 
-              <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(y, t)</h4>
+              <div style={{ display: "flex" }}>
+                <div className="inputName">x</div>
+                <input
+                  type="number"
+                  placeholder={(T / 2).toFixed(0)}
+                  className="writeInput"
+                  onChange={e => e.target.value === "" ? setXShod(Number((l / 2).toFixed(0))) : Number(e.target.value) <= l && Number(e.target.value) > 0 ? setXShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setXShod(0) : setXShod(l)}
+                  min={1}
+                />
+              </div>
+
+              <div style={{ height: 30 }}></div>
+
+              <h4 style={{ position: "absolute", transform: "translate(0px, -35px)" }}>{`w(x=${xShod}, t)`}</h4>
+
               <ComposedChart
                 width={width / 2}
                 height={300}
@@ -682,7 +702,7 @@ export default function Hello(this: any) {
               <h4
                 style={{
                   position: "absolute",
-                  transform: `translate(${width / 2 - 10}px, -25px)`
+                  transform: `translate(${width / 2 - 10}px, -60px)`
                 }}
               >t</h4>
             </div>
