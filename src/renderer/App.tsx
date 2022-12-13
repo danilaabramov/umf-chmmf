@@ -9,8 +9,9 @@ import {
   YAxis
 } from "recharts";
 import "./App.css";
+import { Range } from "react-range";
 
-export default function Hello() {
+export default function Hello(this: any) {
   const u0 = 0;
   const [l, setL] = useState(20);
   const [T, setT] = useState(100);
@@ -24,8 +25,10 @@ export default function Hello() {
   const [ix, setIx] = useState(200);
   const [it, setIt] = useState(200);
   const [state, setState] = useState(2);
+  const [stateShod, setStateShod] = useState(false);
 
   const [tShod, setTShod] = useState(50);
+  const [xShod, setXShod] = useState(5);
 
   const h = useMemo(() => alpha / k, [alpha, k]);
 
@@ -40,7 +43,6 @@ export default function Hello() {
   const ht = useMemo(() => T / it, [it, T]);
   const gamma = useMemo(() => a ** 2 * ht / hx ** 2, [ht, hx, a]);
 
-  // const colors = ["#4589BD", "#F39839", "#5AA94A", "#CF4B3E", "#A080C4"];
   const colors = ["black", "black", "black", "black", "black"];
   const colors2 = ["blue", "orange", "green", "red", "purple"];
 
@@ -58,7 +60,7 @@ export default function Hello() {
   const W2 = useMemo(() => {
     let pq = Array(it + 1).fill(Array(ix));
     let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
-    for (let i = 0; i <= ix + 1; ++i) w[0][i] = psiX(i * hx);
+    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
     for (let K = 1; K <= it; ++K) {
       pq[K][0] = {
         p: 1 / (1 + h * hx),
@@ -79,7 +81,7 @@ export default function Hello() {
   const W3 = useMemo(() => {
     let pq = Array(it + 1).fill(Array(ix));
     let w = JSON.parse(JSON.stringify(Array(it + 1).fill(Array(ix + 1))));
-    for (let i = 0; i <= ix + 1; ++i) w[0][i] = psiX(i * hx);
+    for (let i = 0; i <= ix; ++i) w[0][i] = psiX(i * hx);
     for (let K = 1; K <= it; ++K) {
       pq[K][0] = {
         p: 1 / (1 + h * hx + (2 * gamma) ** -1),
@@ -99,16 +101,17 @@ export default function Hello() {
 
   const IKs = useMemo(() => {
     return state === 0 ?
-    [{ I: 5, K: 10 }, { I: 5, K: 20 }, { I: 10, K: 30 }, { I: 10, K: 50 }, { I: 20, K: 100 }] :
+      [{ I: 10, K: 250 }, { I: 20, K: 500 }, { I: 40, K: 1000 }, { I: 80, K: 2000 }, { I: 160, K: 4000 }] :
       state === 1 ?
-        [{ I: 5, K: 5 }, { I: 10, K: 10 }, { I: 20, K: 20 }, { I: 40, K: 40 }, { I: 80, K: 80 }] :
+        [{ I: 10, K: 10 }, { I: 20, K: 20 }, { I: 40, K: 40 }, { I: 80, K: 80 }, { I: 160, K: 160 }] :
 
-        [{ I: 3, K: 1}, {I: 5, K: 3}, { I: 10, K: 5 }, { I: 20, K: 10 }, { I: 40, K: 20 }]
-  }, [state])
+        [{ I: 10, K: 10 }, { I: 20, K: 20 }, { I: 40, K: 40 }, { I: 80, K: 80 }, { I: 160, K: 160 }];
+  }, [state]);
 
 
   const Wshod1 = useMemo(() => {
-    const IK = IKs;
+    let IK = IKs;
+    // if (IKs) for (let i = 0; i < IKs.length; ++i) IK.push({ I: IKs[i].I - 1, K: IKs[i].K - 1 });
     let W = [];
     for (let j = 0; j < IK.length; ++j) {
       let hx = l / IK[j].I;
@@ -127,7 +130,8 @@ export default function Hello() {
   }, [h, gamma, l, T, IKs]);
 
   const Wshod2 = useMemo(() => {
-    const IK = IKs;
+    let IK = IKs;
+    // if (IKs) for (let i = 0; i < IKs.length; ++i) IK.push({ I: IKs[i].I - 1, K: IKs[i].K - 1 });
     let W = [];
     for (let j = 0; j < IK.length; ++j) {
       let hx = l / IK[j].I;
@@ -135,7 +139,7 @@ export default function Hello() {
       let gamma = a ** 2 * ht / hx ** 2;
       let pq = Array(IK[j].K + 1).fill(Array(IK[j].I));
       let w = JSON.parse(JSON.stringify(Array(IK[j].K + 1).fill(Array(IK[j].I + 1))));
-      for (let i = 0; i <= IK[j].I + 1; ++i) w[0][i] = psiX(i * hx);
+      for (let i = 0; i <= IK[j].I; ++i) w[0][i] = psiX(i * hx);
       for (let K = 1; K <= IK[j].K; ++K) {
         pq[K][0] = {
           p: 1 / (1 + h * hx),
@@ -155,7 +159,8 @@ export default function Hello() {
   }, [h, gamma, l, T, IKs]);
 
   const Wshod3 = useMemo(() => {
-    const IK = IKs;
+    let IK = IKs;
+    // if (IKs) for (let i = 0; i < IKs.length; ++i) IK.push({ I: IKs[i].I - 1, K: IKs[i].K - 1 });
     let W = [];
     for (let j = 0; j < IK.length; ++j) {
       let hx = l / IK[j].I;
@@ -163,7 +168,7 @@ export default function Hello() {
       let gamma = a ** 2 * ht / hx ** 2;
       let pq = Array(IK[j].K + 1).fill(Array(IK[j].I));
       let w = JSON.parse(JSON.stringify(Array(IK[j].K + 1).fill(Array(IK[j].I + 1))));
-      for (let i = 0; i <= IK[j].I + 1; ++i) w[0][i] = psiX(i * hx);
+      for (let i = 0; i <= IK[j].I; ++i) w[0][i] = psiX(i * hx);
       for (let K = 1; K <= IK[j].K; ++K) {
         pq[K][0] = {
           p: 1 / (1 + h * hx + (2 * gamma) ** -1),
@@ -175,7 +180,7 @@ export default function Hello() {
             q: (gamma * pq[K][i - 1].q + w[K - 1][i]) / (1 + 2 * gamma - gamma * pq[K][i - 1].p)
           };
         w[K][IK[j].I] = (pq[K][IK[j].I - 1].q + u0 * h * hx + (2 * gamma) ** -1 * w[K - 1][IK[j].I])
-          / (1 + h * hx ** 2 + (2 * gamma) ** -1 - pq[K][IK[j].I - 1].p);
+          / (1 + h * hx + (2 * gamma) ** -1 - pq[K][IK[j].I - 1].p);
         for (let i = IK[j].I - 1; i >= 0; --i) w[K][i] = w[K][i + 1] * pq[K][i].p + pq[K][i].q;
       }
       W.push(w);
@@ -184,37 +189,62 @@ export default function Hello() {
   }, [h, gamma, l, T, IKs]);
 
   useEffect(() => {
-   if(T < tShod) setTShod(T)
-  }, [T])
+    if (T < tShod) setTShod(T);
+  }, [T]);
+
+  useEffect(() => {
+    if (l < xShod) setXShod(l);
+  }, [l]);
 
   const arrShod = useMemo(() => {
-
-    const IK = IKs;
+    let IK = IKs;
+    //for (let i = 0; i < IKs.length; ++i) IK.push({ I: IKs[i].I - 1, K: IKs[i].K - 1 });
 
     let arr: any[] = [];
 
-    const ts = T < tShod ? T : tShod
+    const ts = T < tShod ? T : tShod;
 
     for (let j = 0; j < IK.length; ++j) {
 
       let t = (IK[j].K * ts / T).toFixed(0);
       let hx = l / IK[j].I;
       let data: any[] = [];
-      for (let i = 0, x = 0; x <= l && i <= (state === 1 ? Wshod2[j][0].length : state === 2 ? Wshod3[j][0].length : Wshod1[j][0].length); ++i, x += hx)
+      //console.log( Wshod3[j][0][11])
+      for (let i = 0, x = 0; i <= IK[j].I; ++i, x += hx) {
         data = [...data, {
           x: Number(x.toFixed(2)),
           v: (state === 1 ? Wshod2[j][t][i] : state === 2 ? Wshod3[j][t][i] : Wshod1[j][t][i])//state === 0 ? W[Number((W.length / 2).toFixed(1))][i] : state === 1 ? W2[tt[j]][i] : W2[tt[j]][i]
         }];
-      arr = [...arr, { name: "I = " + IK[j].I + "; K = " + IK[j].K, data, color: colors2[j] }];
+      }
+      arr = [...arr, { name: "I = " + IKs[j].I + "; K = " + IKs[j].K, data, color: colors2[j] }];
     }
     return arr;
-  }, [Wshod2, Wshod3, state, tShod]);
+  }, [Wshod1, Wshod2, Wshod3, state, tShod]);
 
-  // const [zoom, setZoom] = useState()
-  //
-  // useEffect(() => {
-  //   setZoom()
-  // }, [zoom])
+  const arrShod2 = useMemo(() => {
+    let IK = IKs;
+    //for (let i = 0; i < IKs.length; ++i) IK.push({ I: IKs[i].I - 1, K: IKs[i].K - 1 });
+
+    let arr: any[] = [];
+
+    const xs = l < xShod ? l : xShod;
+
+    for (let j = 0; j < IK.length; ++j) {
+
+      let x = (IK[j].I * xs / l).toFixed(0);
+      let ht = (T - 1) / IK[j].K;
+      let data: any[] = [];
+      for (let k = 0, t = 1; k <= IK[j].K; ++k, t += ht) {
+        data = [...data, {
+          t: Number(t.toFixed(2)),
+          v: (state === 1 ? Wshod2[j][k][x] : state === 2 ? Wshod3[j][k][x] : Wshod1[j][k][x])//state === 0 ? W[Number((W.length / 2).toFixed(1))][i] : state === 1 ? W2[tt[j]][i] : W2[tt[j]][i]
+        }];
+      }
+      arr = [...arr, { name: "I = " + IKs[j].I + "; K = " + IKs[j].K, data, color: colors2[j] }];
+    }
+    return arr;
+  }, [Wshod1, Wshod2, Wshod3, state, xShod]);
+
 
   const eps = 0.0001;
   const delta = eps / 6;
@@ -272,7 +302,7 @@ export default function Hello() {
   const N = useMemo(() => {
     let Ns = [];
     let n = 0;
-    for (let e = 10 ** -2; e >= 10 ** -7; e /= 10) {
+    for (let e = 10 ** -2; e >= 10 ** -10; e /= 10) {
       let Nt = 2;
       for (; e <= F(Nt); ++Nt) ;
       setNmin(--Nt);
@@ -288,13 +318,26 @@ export default function Hello() {
     const t = tShod;
     let arr: any[] = [];
 
-      let data: any[] = [];
-      for (let j = 0, x = -l / 2; j <= ix; x += hx, ++j)
-        data = [...data, { x: Number((x + l / 2).toFixed(2)), v: Number(Sum(iS, x, t)) }];
-      arr = [...arr, { name: "Аналитика", data, color: 'black' }];
+    let data: any[] = [];
+    for (let j = 0, x = -l / 2; j <= ix; x += hx, ++j)
+      data = [...data, { x: Number((x + l / 2).toFixed(2)), v: Number(Sum(iS, x, t)) }];
+    arr = [...arr, { name: "Аналитика", data, color: "black" }];
 
     return arr;
   }, [ix, p, a, l, T, tShod]);
+
+  const arrAnal2 = useMemo(() => {
+    const x = xShod;
+    let arr: any[] = [];
+
+    let data: any[] = [];
+    for (let t = 1, k = 0; k <= it; ++k, t += (T - 1) / it)
+      data = [...data, { t: Number(t.toFixed(2)), v: Number(Sum(iS, x, t)) }];
+    arr = [...arr, { name: "Аналитика", data, color: "black" }];
+
+    return arr;
+  }, [ix, p, a, l, T, xShod]);
+
 
   const arr1 = useMemo(() => {
     const t = [T / 20, T / 10, T / 5, T / 2, T];
@@ -368,99 +411,302 @@ export default function Hello() {
   const [activeP, setActiveP] = useState(false);
   const [activeN, setActiveN] = useState(false);
 
-  // @ts-ignore
+
+  const [zoom, setZoom] = useState([50]);
+  //const [zoom2, setZoom2] = useState([50]);
+
+  const [domains, setDomains] = useState([0, l, 0, 1]);
+  const [domains2, setDomains2] = useState([1, T, 0, 1]);
+
+  const zoomFun = (d1: number, d2: number, data: any[]) => {
+    let arr = [];
+    let flag1 = true;
+    let flag2 = true;
+    for (let i = 0; i < data.length; ++i)
+      if (d1 <= data[i].x && data[i].x <= d2) {
+        if (i > 0 && flag1) {
+          arr.push({
+            x: d1,
+            v: (data[i].v - data[i - 1].v) * (d1 - data[i - 1].x) / (data[i].x - data[i - 1].x) + data[i - 1].v
+          });
+          flag1 = false;
+        }
+        arr.push(data[i]);
+      } else if (!flag1 && flag2 && i < data.length - 1) {
+        arr.push({
+          x: d2,
+          v: (data[i].v - data[i - 1].v) * (d2 - data[i - 1].x) / (data[i].x - data[i - 1].x) + data[i - 1].v
+        });
+        break;
+      }
+
+    return arr;
+  };
+
+  const zoomFun2 = (d1: number, d2: number, data: any[]) => {
+    let arr = [];
+    let flag1 = true;
+    let flag2 = true;
+    for (let i = 0; i < data.length; ++i)
+      if (d1 <= data[i].t && data[i].t <= d2) {
+        if (i > 0 && flag1) {
+          arr.push({
+            t: d1,
+            v: (data[i].v - data[i - 1].v) * (d1 - data[i - 1].t) / (data[i].t - data[i - 1].t) + data[i - 1].v
+          });
+          flag1 = false;
+        }
+        arr.push(data[i]);
+      } else if (!flag1 && flag2 && i < data.length - 1) {
+        arr.push({
+          t: d2,
+          v: (data[i].v - data[i - 1].v) * (d2 - data[i - 1].t) / (data[i].t - data[i - 1].t) + data[i - 1].v
+        });
+        break;
+      }
+
+    return arr;
+  };
+
+  const [arrZoom, setArrZoom] = useState([...arrShod, ...arrAnal]);
+  const [arrZoom2, setArrZoom2] = useState([...arrShod2, ...arrAnal2]);
+
+  useEffect(() => {
+    const d1 = zoom[0] * l / 200;
+    const d2 = l - d1;
+    const d3 = zoom[0] / 100;
+    const d4 = 1 - d3;
+    setDomains([d1, d2, d3, d4]);
+
+
+    const as0 = zoomFun(d1, d2, arrShod[0].data);
+    const as1 = zoomFun(d1, d2, arrShod[1].data);
+    const as2 = zoomFun(d1, d2, arrShod[2].data);
+    const as3 = zoomFun(d1, d2, arrShod[3].data);
+    const as4 = zoomFun(d1, d2, arrShod[4].data);
+    const aa = zoomFun(d1, d2, arrAnal[0].data);
+
+    const data = [
+      { ...arrShod[0], data: as0 },
+      { ...arrShod[1], data: as1 },
+      { ...arrShod[2], data: as2 },
+      { ...arrShod[3], data: as3 },
+      { ...arrShod[4], data: as4 },
+      { ...arrAnal[0], data: aa }
+    ];
+    setArrZoom(data);
+
+  }, [zoom[0], ...arrShod, ...arrAnal]);
+
+  useEffect(() => {
+    const d1 = zoom[0] * T / 200;
+    const d2 = T - d1;
+    const d3 = zoom[0] / 200;
+    const d4 = 1 - d3;
+    setDomains2([d1, d2, d3, d4]);
+
+
+    const as0 = zoomFun2(d1, d2, arrShod2[0].data);
+    const as1 = zoomFun2(d1, d2, arrShod2[1].data);
+    const as2 = zoomFun2(d1, d2, arrShod2[2].data);
+    const as3 = zoomFun2(d1, d2, arrShod2[3].data);
+    const as4 = zoomFun2(d1, d2, arrShod2[4].data);
+    const aa = zoomFun2(d1, d2, arrAnal2[0].data);
+
+    const data = [
+      { ...arrShod2[0], data: as0 },
+      { ...arrShod2[1], data: as1 },
+      { ...arrShod2[2], data: as2 },
+      { ...arrShod2[3], data: as3 },
+      { ...arrShod2[4], data: as4 },
+      { ...arrAnal2[0], data: aa }
+    ];
+    setArrZoom2(data);
+
+  }, [zoom[0], ...arrShod2, ...arrAnal2]);
   return (
     <>
       <div className="main">
         <div>
-          <div style={{ width: width / 2, fontSize: "14px" }}>
-            <h3 style={{ color: "#000", margin: "0 0 20px 50px" }}>Графики температуры стержня с теплоизолированной
-              боковой поверхностью</h3>
-            <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(x, t)</h4>
-            <ComposedChart
-              width={width / 2}
-              height={300}
-              margin={{
-                right: 15
-              }}>
-              <CartesianGrid stroke="#BFBEBE" />
-              <XAxis domain={[0, l]} type="number" dataKey="x" allowDuplicatedCategory={false} />
-              <YAxis domain={[0, 1]} />
-              <Legend />
-              <Tooltip />
-              {[...arr1, ...arr12].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
-                                                    strokeWidth={2}
-                                                    stroke={i.color} />)}
-            </ComposedChart>
-            <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
-          </div>
-          <div style={{ width: width / 2, fontSize: "14px" }}>
-            <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(y, t)</h4>
-            <ComposedChart
-              width={width / 2}
-              height={300}
-              margin={{
-                top: 10,
-                right: 15
-              }}>
-              <CartesianGrid stroke="#BFBEBE" />
-              <XAxis domain={[0, T]} type="number" dataKey="t" allowDuplicatedCategory={false} />
-              <YAxis domain={[0, 1]} />
-              <Legend />
-              <Tooltip />
-              {[...arr2, ...arr22].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
-                                                    strokeWidth={2}
-                                                    stroke={i.color} />)}
-            </ComposedChart>
-            <h4
-              style={{
-                position: "absolute",
-                transform: `translate(${width / 2 - 10}px, -25px)`
-              }}
-            >t</h4>
-          </div>
+          {
+            !stateShod &&
+            <div>
+              <div style={{ width: width / 2, fontSize: "14px" }}>
+                <h3 style={{ color: "#000", margin: "0 0 20px 50px" }}>Графики температуры стержня с теплоизолированной
+                  боковой поверхностью</h3>
+                <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(x, t)</h4>
+                <ComposedChart
+                  width={width / 2}
+                  height={300}
+                  margin={{
+                    right: 15
+                  }}
+                >
+                  <CartesianGrid stroke="#BFBEBE" />
+                  <XAxis domain={[0, l]} type="number" dataKey="x" allowDuplicatedCategory={false} />
+                  <YAxis domain={[0, 1]} />
+                  <Legend />
+                  <Tooltip />
+                  {[...arr1, ...arr12].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
+                                                        strokeWidth={2}
+                                                        stroke={i.color} />)}
+                </ComposedChart>
+                <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
+              </div>
+              <div style={{ width: width / 2, fontSize: "14px" }}>
+                <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(y, t)</h4>
+                <ComposedChart
+                  width={width / 2}
+                  height={300}
+                  margin={{
+                    top: 10,
+                    right: 15
+                  }}>
+                  <CartesianGrid stroke="#BFBEBE" />
+                  <XAxis domain={[0, T]} type="number" dataKey="t" allowDuplicatedCategory={false} />
+                  <YAxis domain={[0, 1]} />
+                  <Legend />
+                  <Tooltip />
+                  {[...arr2, ...arr22].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
+                                                        strokeWidth={2}
+                                                        stroke={i.color} />)}
+                </ComposedChart>
+                <h4
+                  style={{
+                    position: "absolute",
+                    transform: `translate(${width / 2 - 10}px, -25px)`
+                  }}
+                >t</h4>
+              </div>
+            </div>
+          }
 
-          <div style={{ width: width / 2, fontSize: "14px" }}>
-            <div style={{ height: 30 }}></div>
+
+          {/* ///////////////// */}
+          {
+            stateShod &&
+            <div style={{ width: width / 2, fontSize: "14px" }}>
+              <div style={{ height: 30 }}></div>
 
 
-            <div style={{display: 'flex'}}>
-            <div className="inputName">t</div>
-            <input
-              type="number"
-              placeholder={(T / 2).toFixed(0)}
-              className="writeInput"
-              onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(1) : setTShod(T)}
-              min={1}
-            />
+              <div style={{ display: "flex" }}>
+                <div className="inputName">t</div>
+                <input
+                  type="number"
+                  placeholder={(T / 2).toFixed(0)}
+                  className="writeInput"
+                  onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(1) : setTShod(T)}
+                  min={1}
+                />
+              </div>
+
+              <div style={{ height: 30 }}></div>
+
+              <Range
+                step={0.1}
+                min={0}
+                max={100}
+                values={zoom}
+                onChange={(values) => setZoom(values)}
+                renderTrack={({ props, children }) => (
+                  <div
+                    {...props}
+                    style={{
+                      ...props.style,
+                      height: "6px",
+                      width: "100%",
+                      backgroundColor: "#ccc"
+                    }}
+                  >
+                    {children}
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    style={{
+                      ...props.style,
+                      height: "42px",
+                      width: "42px",
+                      backgroundColor: "#999"
+                    }}
+                  />
+                )}
+              />
+
+              <div style={{ height: 30 }}></div>
+
+              <h4 style={{ position: "absolute", transform: "translate(-40px, -10px)" }}>{`w(x, t=${tShod})`}</h4>
+
+              <ComposedChart
+                width={width / 2}
+                height={300}
+                margin={{
+                  right: 15,
+                  left: 100
+                }}
+              >
+                <CartesianGrid stroke="#BFBEBE" />
+                <XAxis domain={[domains[0], domains[1]]} type="number" dataKey="x" allowDuplicatedCategory={false} />
+                <YAxis domain={[domains[2], domains[3]]} />
+                <Legend />
+                <Tooltip />
+                {[...arrZoom].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name}
+                                               key={i.name}
+                                               strokeWidth={2}
+                                               stroke={i.color} />)}
+              </ComposedChart>
+
+
+              <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
+
+
+              <h4 style={{ position: "absolute", transform: "translate(0px, -10px)" }}>w(y, t)</h4>
+              <ComposedChart
+                width={width / 2}
+                height={300}
+                margin={{
+                  top: 10,
+                  right: 15,
+                  left: 100
+                }}>
+                <CartesianGrid stroke="#BFBEBE" />
+                <XAxis domain={[domains2[0], domains2[1]]} type="number" dataKey="t" allowDuplicatedCategory={false} />
+                <YAxis domain={[domains2[2], domains2[3]]} />
+                <Legend />
+                <Tooltip />
+                {[...arrZoom2].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
+                                                strokeWidth={2}
+                                                stroke={i.color} />)}
+              </ComposedChart>
+              <h4
+                style={{
+                  position: "absolute",
+                  transform: `translate(${width / 2 - 10}px, -25px)`
+                }}
+              >t</h4>
             </div>
 
 
-            <div style={{ height: 30 }}></div>
+          }
+          {/* //////////////// */}
 
-            <h4 style={{ position: "absolute", transform: "translate(-40px, -10px)" }}>{`w(x, t=${tShod})`}</h4>
-            <ComposedChart
-              width={width / 2}
-              height={300}
-              margin={{
-                right: 15
-              }}>
-              <CartesianGrid stroke="#BFBEBE" />
-              <XAxis domain={[0, l]} type="number" dataKey="x" allowDuplicatedCategory={false} />
-              <YAxis domain={[0, 1]} />
-              <Legend />
-              <Tooltip />
-              {[...arrShod, ...arrAnal].map((i) => <Line dot={false} dataKey="v" data={i.data} name={i.name} key={i.name}
-                                             strokeWidth={2}
-                                             stroke={i.color} />)}
-            </ComposedChart>
-            <h4 style={{ position: "absolute", transform: `translate(${width / 2 - 10}px, -25px)` }}>x</h4>
-          </div>
 
           <div style={{ height: 50 }}></div>
 
         </div>
         <div style={{ marginLeft: 20 }}>
+          <div className="writeInput hover" style={{
+            color: "#000",
+            marginBottom: 20,
+            cursor: "pointer",
+            width: "calc((100% - 40px))",
+            marginRight: "calc((100% - 20px) / 20)",
+            textAlign: "center",
+            backgroundColor: stateShod ? "#499BD4" : ""
+          }}
+               onClick={() => setStateShod(s => !s)}>Cходимость
+          </div>
           <div style={{ display: "flex", width: "calc(100% - 20px)" }}>
             <div className="writeInput hover" style={{
               color: "#000",
@@ -514,64 +760,6 @@ export default function Hello() {
               })
             }
           </div>
-          <div className="inputName">T</div>
-          <input
-            type="number"
-            placeholder="100"
-            className="writeInput"
-            onChange={e => e.target.value === "" ? setT(100) : Number(e.target.value) > 0 ? setT(Number(e.target.value)) : setT(1)}
-            min={1}
-          />
-          <div className="inputName">l</div>
-          <input
-            type="number"
-            placeholder="20"
-            className="writeInput"
-            onChange={e => e.target.value === "" ? setL(20) : Number(e.target.value) > 0 ? setL(Number(e.target.value)) : setL(1)}
-            min={1}
-          />
-          <div className="inputName">Количество интервалов разбиения по x</div>
-          <input
-            type="number"
-            placeholder="200"
-            className="writeInput"
-            onChange={e => e.target.value === "" ? setIx(200) : Number(e.target.value) <= 10000 && Number(e.target.value) > 0 ? setIx(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIx(1) : setIx(10000)}
-            min={1}
-            max={1000}
-          />
-          <div className="inputName">Количество интервалов разбиения по t</div>
-          <input
-            type="number"
-            placeholder="200"
-            className="writeInput"
-            onChange={e => e.target.value === "" ? setIt(200) : Number(e.target.value) <= 10000 && Number(e.target.value) > 0 ? setIt(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIt(1) : setIt(10000)}
-            min={1}
-            max={1000}
-          />
-          <div className="inputName">α</div>
-          <input
-            type="number"
-            placeholder="0.001"
-            className="writeInput"
-            onChange={e => e.target.value === "" ? setAlpha(0.001) : setAlpha(Number(e.target.value))}
-            step={0.001}
-          />
-          <div className="inputName">k</div>
-          <input
-            type="number"
-            placeholder="0.37"
-            className="writeInput"
-            onChange={e => e.target.value === "" || Number(e.target.value) === 0 ? setK(0.37) : setK(Number(e.target.value))}
-            step={0.01}
-          />
-          <div className="inputName">c</div>
-          <input
-            type="number"
-            placeholder="1.42"
-            className="writeInput"
-            onChange={e => e.target.value === "" || Number(e.target.value) === 0 ? setC(1.42) : setC(Number(e.target.value))}
-            step={0.01}
-          />
 
           <div style={{ display: "flex" }}>
             <div style={{
@@ -606,6 +794,70 @@ export default function Hello() {
             }} onClick={() => setState(2)} />
             <div style={{ marginTop: 5 }}>Модифицированная простейшая неявная конечно-разностная схема</div>
           </div>
+          {
+            !stateShod &&
+            <div>
+              <div className="inputName">I</div>
+              <input
+                type="number"
+                placeholder="200"
+                className="writeInput"
+                onChange={e => e.target.value === "" ? setIx(200) : Number(e.target.value) <= 10000 && Number(e.target.value) > 0 ? setIx(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIx(1) : setIx(10000)}
+                min={1}
+                max={1000}
+              />
+              <div className="inputName">K</div>
+              <input
+                type="number"
+                placeholder="200"
+                className="writeInput"
+                onChange={e => e.target.value === "" ? setIt(200) : Number(e.target.value) <= 10000 && Number(e.target.value) > 0 ? setIt(Number(e.target.value)) : Number(e.target.value) <= 0 ? setIt(1) : setIt(10000)}
+                min={1}
+                max={1000}
+              />
+            </div>
+          }
+          <div className="inputName">T</div>
+          <input
+            type="number"
+            placeholder="100"
+            className="writeInput"
+            onChange={e => e.target.value === "" ? setT(100) : Number(e.target.value) > 0 ? setT(Number(e.target.value)) : setT(1)}
+            min={1}
+          />
+
+          <div className="inputName">l (длина стержня)</div>
+          <input
+            type="number"
+            placeholder="20"
+            className="writeInput"
+            onChange={e => e.target.value === "" ? setL(20) : Number(e.target.value) > 0 ? setL(Number(e.target.value)) : setL(1)}
+            min={1}
+          />
+          <div className="inputName">α</div>
+          <input
+            type="number"
+            placeholder="0.001"
+            className="writeInput"
+            onChange={e => e.target.value === "" ? setAlpha(0.001) : setAlpha(Number(e.target.value))}
+            step={0.001}
+          />
+          <div className="inputName">k</div>
+          <input
+            type="number"
+            placeholder="0.37"
+            className="writeInput"
+            onChange={e => e.target.value === "" || Number(e.target.value) === 0 ? setK(0.37) : setK(Number(e.target.value))}
+            step={0.01}
+          />
+          <div className="inputName">c</div>
+          <input
+            type="number"
+            placeholder="1.42"
+            className="writeInput"
+            onChange={e => e.target.value === "" || Number(e.target.value) === 0 ? setC(1.42) : setC(Number(e.target.value))}
+            step={0.01}
+          />
 
         </div>
       </div>
