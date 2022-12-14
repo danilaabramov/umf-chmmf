@@ -29,6 +29,13 @@ export default function Hello(this: any) {
 
   const [tShod, setTShod] = useState(T / 2);
   const [xShod, setXShod] = useState(l / 2);
+  const [yShod, setYShod] = useState(0);
+
+  useEffect(() => {
+    let y = xShod - l / 2
+    if(y < 0) y = -y
+    setYShod(y)
+  }, [xShod])
 
   const h = useMemo(() => alpha / k, [alpha, k]);
 
@@ -193,7 +200,7 @@ export default function Hello(this: any) {
   }, [T]);
 
   useEffect(() => {
-    if (l / 2 < xShod) setXShod(l / 2);
+    if (l < xShod) setXShod(l);
   }, [l]);
 
   const arrShod = useMemo(() => {
@@ -227,7 +234,7 @@ export default function Hello(this: any) {
 
     let arr: any[] = [];
 
-    const xs = l < xShod ? l : xShod;
+    const xs = l / 2 < yShod ? l / 2 : yShod;
 
     for (let j = 0; j < IK.length; ++j) {
 
@@ -244,7 +251,7 @@ export default function Hello(this: any) {
       arr = [...arr, { name: "I = " + IKs[j].I + "; K = " + IKs[j].K, data, color: colors2[j] }];
     }
     return arr;
-  }, [Wshod1, Wshod2, Wshod3, state, xShod]);
+  }, [Wshod1, Wshod2, Wshod3, state, yShod]);
 
 
   const eps = 0.0001;
@@ -328,7 +335,7 @@ export default function Hello(this: any) {
   }, [ix, p, a, l, T, tShod]);
 
   const arrAnal2 = useMemo(() => {
-    let x = xShod;
+    let x = yShod;
     if(x > l / 2) {
       x -= l
       x = -x
@@ -341,7 +348,7 @@ export default function Hello(this: any) {
     arr = [...arr, { name: "Аналитика", data, color: "black" }];
 
     return arr;
-  }, [ix, p, a, l, T, xShod]);
+  }, [ix, p, a, l, T, yShod]);
 
 
   const arr1 = useMemo(() => {
@@ -668,19 +675,19 @@ export default function Hello(this: any) {
               <div style={{ height: 30 }}></div>
 
               <div style={{ display: "flex" }}>
-                <div className="inputName">y</div>
+                <div className="inputName">x</div>
                 <input
                   type="number"
                   placeholder={String(xShod)}
                   className="writeInput"
-                  onChange={e => e.target.value === "" ? setXShod(Number((l / 2).toFixed(0))) : Number(e.target.value) <= l / 2 && Number(e.target.value) > 0 ? setXShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setXShod(0) : setXShod(l / 2)}
+                  onChange={e => e.target.value === "" ? setXShod(Number((l / 2).toFixed(0))) : Number(e.target.value) <= l && Number(e.target.value) > 0 ? setXShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setXShod(0) : setXShod(l)}
                   min={0}
                 />
               </div>
 
               <div style={{ height: 30 }}></div>
 
-              <h4 style={{ position: "absolute", transform: "translate(0px, -35px)" }}>{`w(y=${xShod}, t)`}</h4>
+              <h4 style={{ position: "absolute", transform: "translate(0px, -35px)" }}>{`w(y=${yShod}, t)`}</h4>
 
               <ComposedChart
                 width={width / 2}
