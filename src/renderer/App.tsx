@@ -27,8 +27,8 @@ export default function Hello(this: any) {
   const [state, setState] = useState(2);
   const [stateShod, setStateShod] = useState(false);
 
-  const [tShod, setTShod] = useState(50);
-  const [xShod, setXShod] = useState(0);
+  const [tShod, setTShod] = useState(T / 2);
+  const [xShod, setXShod] = useState(l / 2);
 
   const h = useMemo(() => alpha / k, [alpha, k]);
 
@@ -632,7 +632,7 @@ export default function Hello(this: any) {
                 <div className="inputName">t</div>
                 <input
                   type="number"
-                  placeholder={(T / 2).toFixed(0)}
+                  placeholder={(tShod).toFixed(0)}
                   className="writeInput"
                   onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(0) : setTShod(T)}
                   min={1}
@@ -671,7 +671,7 @@ export default function Hello(this: any) {
                 <div className="inputName">x</div>
                 <input
                   type="number"
-                  placeholder={(T / 2).toFixed(0)}
+                  placeholder={(xShod).toFixed(0)}
                   className="writeInput"
                   onChange={e => e.target.value === "" ? setXShod(Number((l / 2).toFixed(0))) : Number(e.target.value) <= l && Number(e.target.value) > 0 ? setXShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setXShod(0) : setXShod(l)}
                   min={1}
