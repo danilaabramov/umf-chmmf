@@ -193,7 +193,7 @@ export default function Hello(this: any) {
   }, [T]);
 
   useEffect(() => {
-    if (l < xShod) setXShod(l);
+    if (l / 2 < xShod) setXShod(l / 2);
   }, [l]);
 
   const arrShod = useMemo(() => {
@@ -632,10 +632,10 @@ export default function Hello(this: any) {
                 <div className="inputName">t</div>
                 <input
                   type="number"
-                  placeholder={(tShod).toFixed(0)}
+                  placeholder={String(tShod)}
                   className="writeInput"
                   onChange={e => e.target.value === "" ? setTShod(Number((T / 2).toFixed(0))) : Number(e.target.value) <= T && Number(e.target.value) > 0 ? setTShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setTShod(0) : setTShod(T)}
-                  min={1}
+                  min={0}
                 />
               </div>
 
@@ -668,19 +668,19 @@ export default function Hello(this: any) {
               <div style={{ height: 30 }}></div>
 
               <div style={{ display: "flex" }}>
-                <div className="inputName">x</div>
+                <div className="inputName">y</div>
                 <input
                   type="number"
-                  placeholder={(xShod).toFixed(0)}
+                  placeholder={String(xShod)}
                   className="writeInput"
-                  onChange={e => e.target.value === "" ? setXShod(Number((l / 2).toFixed(0))) : Number(e.target.value) <= l && Number(e.target.value) > 0 ? setXShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setXShod(0) : setXShod(l)}
-                  min={1}
+                  onChange={e => e.target.value === "" ? setXShod(Number((l / 2).toFixed(0))) : Number(e.target.value) <= l / 2 && Number(e.target.value) > 0 ? setXShod(Number(e.target.value)) : Number(e.target.value) <= 0 ? setXShod(0) : setXShod(l / 2)}
+                  min={0}
                 />
               </div>
 
               <div style={{ height: 30 }}></div>
 
-              <h4 style={{ position: "absolute", transform: "translate(0px, -35px)" }}>{`w(x=${xShod}, t)`}</h4>
+              <h4 style={{ position: "absolute", transform: "translate(0px, -35px)" }}>{`w(y=${xShod}, t)`}</h4>
 
               <ComposedChart
                 width={width / 2}
