@@ -11,7 +11,7 @@ Clone the repo and install dependencies:
 ```bash
 git clone --depth 1 --branch main https://github.com/danilaabramov/umf-chmmf
 
-cd your-project-name
+cd umf-chmmf
 
 npm install
 ```
